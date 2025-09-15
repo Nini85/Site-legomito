@@ -151,6 +151,64 @@
       font-style: italic;
       pointer-events: none;
     }
+
+    /* Kanban */
+    .kanban-board {
+      display: flex;
+      gap: 20px;
+      margin-top: 15px;
+    }
+
+    .kanban-column {
+      flex: 1;
+      background: #f9f9f9;
+      border-radius: 8px;
+      padding: 10px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+    }
+
+    .kanban-column h3 {
+      text-align: center;
+      margin-bottom: 10px;
+      color: #004aad;
+    }
+
+    .kanban-items {
+      min-height: 100px;
+      padding: 5px;
+    }
+
+    .task {
+      background: #fff;
+      padding: 8px;
+      margin: 6px 0;
+      border-radius: 6px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+      cursor: grab;
+    }
+
+    .task:active {
+      cursor: grabbing;
+    }
+
+    .kanban-controls {
+      margin-bottom: 10px;
+    }
+
+    .kanban-controls input {
+      padding: 6px;
+      width: 70%;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
+
+    .kanban-controls button {
+      padding: 7px 12px;
+      margin-left: 5px;
+      border-radius: 6px;
+      border: none;
+      cursor: pointer;
+    }
   </style>
 </head>
 <body>
@@ -202,6 +260,29 @@
     <section class="card">
       <h2>Gráfico</h2>
       <canvas id="durationChart"></canvas>
+    </section>
+
+    <!-- Kanban -->
+    <section class="card" style="flex-basis: 100%;">
+      <h2>Quadro Kanban</h2>
+      <div class="kanban-controls">
+        <input id="newTask" placeholder="Nova tarefa..." />
+        <button class="primary" id="addTaskBtn">Adicionar</button>
+      </div>
+      <div class="kanban-board">
+        <div class="kanban-column" data-status="todo">
+          <h3>A Fazer</h3>
+          <div class="kanban-items" id="todo"></div>
+        </div>
+        <div class="kanban-column" data-status="doing">
+          <h3>Em Progresso</h3>
+          <div class="kanban-items" id="doing"></div>
+        </div>
+        <div class="kanban-column" data-status="done">
+          <h3>Concluído</h3>
+          <div class="kanban-items" id="done"></div>
+        </div>
+      </div>
     </section>
   </main>
 
@@ -357,6 +438,46 @@
     pdfBtn.onclick = savePDF;
 
     setTimerUI();
+
+    // Kanban
+    const addTaskBtn = document.getElementById('addTaskBtn');
+    const newTaskInput = document.getElementById('newTask');
+    const columns = document.querySelectorAll('.kanban-items');
+
+    function createTask(text){
+      const div = document.createElement('div');
+      div.className = 'task';
+      div.textContent = text;
+      div.draggable = true;
+
+      div.addEventListener('dragstart', e => {
+        e.dataTransfer.setData('text/plain', text);
+        e.dataTransfer.effectAllowed = 'move';
+        div.classList.add('dragging');
+      });
+
+      div.addEventListener('dragend', () => {
+        div.classList.remove('dragging');
+      });
+
+      return div;
+    }
+
+    addTaskBtn.addEventListener('click', () => {
+      const text = newTaskInput.value.trim();
+      if(text){
+        document.getElementById('todo').appendChild(createTask(text));
+        newTaskInput.value = '';
+      }
+    });
+
+    columns.forEach(col => {
+      col.addEventListener('dragover', e => {
+        e.preventDefault();
+        const dragging = document.querySelector('.dragging');
+        if(dragging) col.appendChild(dragging);
+      });
+    });
   </script>
 </body>
 </html>
